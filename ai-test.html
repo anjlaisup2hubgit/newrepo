@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+    textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; }
+    button { font: inherit; padding: 0.5rem 1rem; margin-top: 0.5rem; }
+    #answer { white-space: pre-wrap; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>AI test</h1>
+  <form id="ask">
+    <label for="prompt">Ask something</label>
+    <textarea id="prompt" rows="4" required></textarea>
+    <button type="submit">Send</button>
+  </form>
+  <p id="answer" aria-live="polite"></p>
+
+  <script>
+    // Copy this function into any page on the site to talk to the AI.
+    async function askAI(prompt) {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Something went wrong.');
+      return data.text;
+    }
+
+    const form = document.getElementById('ask');
+    const answer = document.getElementById('answer');
+    const button = form.querySelector('button');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      answer.textContent = 'Thinking…';
+      try {
+        answer.textContent = await askAI(document.getElementById('prompt').value);
+      } catch (err) {
+        answer.textContent = 'Error: ' + err.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
